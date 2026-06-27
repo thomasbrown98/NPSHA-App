@@ -1,0 +1,28 @@
+The formula for calculating Net Positive Suction Head Available is simple.
+NPSHA = H_absolute + H_static - H_friction - H_vaporization
+where H_absolute represents the absolute pressure exerted on the fluid column, H_static represents the pressure at the base of the fluid column due to the height
+of fluid, H_friction is the pressure loss due to frictional losses in the piping system, and H_vapor is the vapor pressure of the fluid, all expressed in meters of
+water.
+
+The frictional losses term can be calculated using the Hagen-Pouiselle equation assuming that the fluid is in laminar flow and flowing through a vertical length
+of piping. 
+
+In the use case of interest, I needed to adapt the Hagen-Pouiselle equation for a conical Frustrum. 
+
+To do this, I first started by expressing the Hagen-Pouiselle equation over a differential length of piping, making it take on the following form. 
+
+For a Frustrum, the radius can be expressed as a function of the length of the Frustrum as follows. 
+
+Plugging in this expression, we get the following. 
+
+Now, it is possible to integrate over the length of the Frustrum, giving the following equation. 
+
+Now that we have the ability to calculate the pressure drop of the fluid through the frustrum, calculating the NPSHA is trivial. 
+
+The application presented here allows for easy determination of NPSHA as a function of several variables. Let us work through some use cases. 
+
+In one particular project I worked on, the fluid was a highly viscous polymer solution leaving an evaporator. Given that the fluid was immediately leaving the 
+evaporator, I knew that the fluid was in vapor-liquid equilibrium. This presents a special case for our Streamlit application where H_absolute is equal to 
+H_vaporization. 
+
+Now, I can set the viscosity of the fluid and the desired volumetric flow-rate.
