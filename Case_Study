@@ -1,28 +1,70 @@
-The formula for calculating Net Positive Suction Head Available is simple.
-NPSHA = H_absolute + H_static - H_friction - H_vaporization
-where H_absolute represents the absolute pressure exerted on the fluid column, H_static represents the pressure at the base of the fluid column due to the height
-of fluid, H_friction is the pressure loss due to frictional losses in the piping system, and H_vapor is the vapor pressure of the fluid, all expressed in meters of
-water.
-
-The frictional losses term can be calculated using the Hagen-Pouiselle equation assuming that the fluid is in laminar flow and flowing through a vertical length
-of piping. 
-
-In the use case of interest, I needed to adapt the Hagen-Pouiselle equation for a conical Frustrum. 
-
-To do this, I first started by expressing the Hagen-Pouiselle equation over a differential length of piping, making it take on the following form. 
-
-For a Frustrum, the radius can be expressed as a function of the length of the Frustrum as follows. 
-
-Plugging in this expression, we get the following. 
-
-Now, it is possible to integrate over the length of the Frustrum, giving the following equation. 
-
-Now that we have the ability to calculate the pressure drop of the fluid through the frustrum, calculating the NPSHA is trivial. 
-
-The application presented here allows for easy determination of NPSHA as a function of several variables. Let us work through some use cases. 
-
-In one particular project I worked on, the fluid was a highly viscous polymer solution leaving an evaporator. Given that the fluid was immediately leaving the 
-evaporator, I knew that the fluid was in vapor-liquid equilibrium. This presents a special case for our Streamlit application where H_absolute is equal to 
-H_vaporization. 
-
-Now, I can set the viscosity of the fluid and the desired volumetric flow-rate.
+Net Positive Suction Head Available (NPSHA) — Derivation & Application
+Overview
+The formula for calculating Net Positive Suction Head Available is:
+$$NPSH_A = H_{absolute} + H_{static} - H_{friction} - H_{vaporization}$$
+Term	Description
+$H_{absolute}$	Absolute pressure exerted on the fluid surface, expressed in meters of water
+$H_{static}$	Pressure at the base of the fluid column due to the height of fluid, expressed in meters of water
+$H_{friction}$	Pressure loss due to frictional losses in the piping system, expressed in meters of water
+$H_{vaporization}$	Vapor pressure of the fluid, expressed in meters of water
+---
+Frictional Losses — Hagen–Poiseuille Equation
+The frictional losses term $H_{friction}$ can be calculated using the Hagen–Poiseuille equation, assuming the fluid is in laminar flow and flowing through a vertical length of piping:
+$$\Delta P = \frac{128 \mu L Q}{\pi D^4}$$
+where:
+$\mu$ — dynamic viscosity of the fluid $[\text{Pa·s}]$
+$L$ — length of the pipe $[\text{m}]$
+$Q$ — volumetric flow rate $[\text{m}^3/\text{s}]$
+$D$ — pipe diameter $[\text{m}]$
+---
+Adaptation for a Conical Frustum
+In the use case of interest, the Hagen–Poiseuille equation must be adapted for a conical frustum (a truncated cone).
+Step 1 — Differential Form
+First, express the Hagen–Poiseuille equation over a differential length $dz$ of piping:
+$$dP = \frac{128 \mu Q}{\pi D(z)^4} , dz$$
+or equivalently in terms of radius $r(z)$:
+$$dP = \frac{8 \mu Q}{\pi r(z)^4} , dz$$
+Step 2 — Radius as a Function of Position
+For a frustum of length $L$ with inlet radius $r_1$ and outlet radius $r_2$, the radius varies linearly along the axial coordinate $z$:
+$$r(z) = r_1 + \left(\frac{r_2 - r_1}{L}\right) z$$
+Step 3 — Substitution
+Substituting this expression into the differential form:
+$$dP = \frac{8 \mu Q}{\pi \left[r_1 + \left(\dfrac{r_2 - r_1}{L}\right) z\right]^4} , dz$$
+Step 4 — Integration over the Frustum Length
+Integrating from $z = 0$ to $z = L$:
+$$\Delta P = \frac{8 \mu Q}{\pi} \int_0^L \frac{dz}{\left[r_1 + \left(\dfrac{r_2 - r_1}{L}\right) z\right]^4}$$
+Using the standard result $\displaystyle\int \frac{dz}{(a + bz)^4} = \frac{-1}{3b(a+bz)^3}$, with $a = r_1$ and $b = \dfrac{r_2 - r_1}{L}$:
+$$\boxed{\Delta P_{frustum} = \frac{8 \mu Q L}{3\pi (r_2 - r_1)} \left(\frac{1}{r_1^3} - \frac{1}{r_2^3}\right)}$$
+Converting to head of fluid (meters of water):
+$$H_{friction} = \frac{\Delta P_{frustum}}{\rho g}$$
+---
+Calculating NPSHA
+Now that the pressure drop through the frustum is known, calculating $NPSH_A$ is straightforward:
+$$NPSH_A = H_{absolute} + H_{static} - \frac{\Delta P_{frustum}}{\rho g} - H_{vaporization}$$
+---
+Streamlit Application
+The application presented here allows for easy determination of $NPSH_A$ as a function of several variables. Below are worked use cases.
+Use Case — Viscous Polymer Solution from an Evaporator
+In one particular project, the fluid was a highly viscous polymer solution leaving an evaporator. Given that the fluid was immediately leaving the evaporator, the fluid was in vapor–liquid equilibrium. This presents a special case where:
+$$H_{absolute} = H_{vaporization}$$
+These two terms cancel in the NPSHA equation, simplifying it to:
+$$NPSH_A = H_{static} - H_{friction}$$
+The user can then set:
+Fluid viscosity $\mu$ — to reflect the polymer solution rheology
+Desired volumetric flow rate $Q$ — to match the process requirement
+The application then computes $NPSH_A$ and checks whether it exceeds the pump's required $NPSH_R$ with adequate margin, flagging conditions where cavitation risk is present.
+---
+Summary of Variables
+Symbol	Description	Units
+$NPSH_A$	Net Positive Suction Head Available	m
+$H_{absolute}$	Absolute pressure head on fluid surface	m
+$H_{static}$	Static head of fluid column	m
+$H_{friction}$	Frictional head loss through piping/frustum	m
+$H_{vaporization}$	Vapor pressure head of fluid	m
+$\mu$	Dynamic viscosity	Pa·s
+$Q$	Volumetric flow rate	m³/s
+$L$	Length of frustum	m
+$r_1$	Inlet radius of frustum	m
+$r_2$	Outlet radius of frustum	m
+$\rho$	Fluid density	kg/m³
+$g$	Gravitational acceleration	m/s²
