@@ -1,0 +1,160 @@
+#Dependencies
+import matplotlib.pyplot as plt
+import streamlit as st
+import numpy as np
+
+#Equation for plotting the frustum
+def plot_frustum_on_ax(ax, r_top, r_bottom, height):
+    """
+    Draws a 2D cross-section of a frustum (side view) on a given Axes object.
+
+    Parameters:
+        ax       : matplotlib Axes to draw on
+        r_top    : Radius of the top circle (incoming side)
+        r_bottom : Radius of the bottom circle (outgoing side)
+        height   : Height/length of the frustum
+    """
+    if r_top < 0 or r_bottom < 0 or height <= 0:
+        raise ValueError("Radii must be non-negative and height must be positive.")
+
+    left_x  = [-r_top,    -r_bottom]
+    right_x = [ r_top,     r_bottom]
+    y       = [height,     0       ]
+
+    # Slanted side edges
+    ax.plot(left_x,  y, "b-", linewidth=2)
+    ax.plot(right_x, y, "b-", linewidth=2)
+
+    # Top (inlet) and bottom (outlet) circles
+    ax.plot([-r_top,    r_top   ], [height, height], "b-",  linewidth=2, label=f"r_top = {r_top:.3f} m")
+    ax.plot([-r_bottom, r_bottom], [0,      0     ], "r--", linewidth=2, label=f"r_bottom = {r_bottom:.3f} m")
+
+    # Dimension annotations
+    ax.annotate("", xy=(r_top, height), xytext=(0, height),
+                arrowprops=dict(arrowstyle="<->", color="gray"))
+    ax.text(r_top / 2, height * 1.02, f"r_top\n{r_top:.3f} m",
+            ha="center", va="bottom", fontsize=8, color="gray")
+
+    ax.annotate("", xy=(r_bottom, 0), xytext=(0, 0),
+                arrowprops=dict(arrowstyle="<->", color="gray"))
+    ax.text(r_bottom / 2, -height * 0.06, f"r_bottom\n{r_bottom:.3f} m",
+            ha="center", va="top", fontsize=8, color="gray")
+
+    ax.set_xlabel("Radius (m)")
+    ax.set_ylabel("Height (m)")
+    ax.set_title("Frustum Cross-Section\n(side view, longest cone shown)")
+    ax.set_aspect("equal")
+    ax.grid(True)
+    ax.legend(fontsize=8)
+
+#Define a function for calculating hagen-pouiselle pressure drop in a frustum
+def HP_frustrum(visc, volumetric, length, r_in, r_out):
+    """
+    Pressure drop through a frustum (cone), returned as meters of H2O head.
+
+    Parameters
+    ----------
+    visc       : float  – viscosity (Pa·s)
+    volumetric : float  – volumetric flow rate (m³/s)
+    length     : float  – cone length (m)
+    r_in       : float  – inlet radius (m)
+    r_out      : float  – outlet radius (m)
+
+    Returns
+    -------
+    del_P : float – pressure drop (m H2O)
+    """
+    del_P = (
+        -(visc * 8 * volumetric * length / (3 * np.pi * (r_in - r_out)))
+        * (1 / r_in**3 - 1 / r_out**3)
+    ) / 9810
+    return del_P
+
+#Define a function for calculating NPSHA
+def NPSHA(h_avail, h_height, h_frict, h_vap):
+    """Net Positive Suction Head Available (m H2O)."""
+    return h_avail + h_height - h_frict - h_vap
+
+
+# ── Streamlit UI ─────────────────────────────────────────────────────────────
+
+st.title("NPSHA Calculator – Viscous Fluid through a Frustum")
+
+st.sidebar.header("Fluid & Flow Parameters")
+visc    = st.sidebar.slider("Viscosity (Pa·s)",           100,   50000, 1000)
+volume  = st.sidebar.slider("Volumetric Flow Rate (m³/s)",  0.01,  1.0,   0.3,  step=0.01)
+h_avail = st.sidebar.number_input("Available Head (m H2O)",   value=3.0)
+h_vap   = st.sidebar.number_input("Vapour Pressure (m H2O)",  value=0.24)
+
+st.sidebar.header("Frustum Geometry")
+r_in        = st.sidebar.number_input("Inlet Radius – top of frustum (m)",   value=0.10,  step=0.01,  format="%.3f")
+n_radii     = st.sidebar.slider("Number of outlet-radius curves", 3, 10, 6)
+low_length  = st.sidebar.number_input("Minimum cone length (m)",  value=0.10,  step=0.01,  format="%.3f")
+high_length = st.sidebar.number_input("Maximum cone length (m)",  value=1.00,  step=0.05,  format="%.3f")
+
+# ── Derived arrays ────────────────────────────────────────────────────────────
+
+if high_length <= low_length:
+    st.error("Maximum cone length must be greater than minimum cone length.")
+    st.stop()
+
+if r_in <= 0:
+    st.error("Inlet radius must be positive.")
+    st.stop()
+
+lengths = np.linspace(low_length, high_length, 30)
+
+# Outlet radii range: 50 % → 90 % of r_in
+r_out_arr = np.linspace(r_in * 0.50, r_in * 0.90, n_radii)
+
+p_drop = np.zeros((len(lengths), len(r_out_arr)))
+
+for i, length in enumerate(lengths):
+    for j, rad in enumerate(r_out_arr):
+        p_drop[i, j] = HP_frustrum(visc, volume, length, r_in, rad)
+
+# h_height = cone length (fluid column above pump inlet)
+npsha = NPSHA(h_avail, lengths.reshape(-1, 1), p_drop, h_vap)
+
+# ── Side-by-side plots ────────────────────────────────────────────────────────
+
+fig, (ax_npsha, ax_frust) = plt.subplots(
+    1, 2,
+    figsize=(13, 6),
+    gridspec_kw={"width_ratios": [2, 1]},
+)
+fig.suptitle("NPSHA & Frustum Cross-Section", fontsize=14, fontweight="bold")
+
+# Left panel – NPSHA vs cone length for each outlet radius
+cmap   = plt.get_cmap("tab10")
+colors = [cmap(k / n_radii) for k in range(n_radii)]
+
+for j, rad in enumerate(r_out_arr):
+    ax_npsha.plot(
+        lengths,
+        npsha[:, j],
+        label=f"r_out = {rad:.3f} m",
+        color=colors[j],
+        linewidth=1.8,
+    )
+
+ax_npsha.axhline(0, color="red", linestyle="--", linewidth=1.2, label="NPSHA = 0 (cavitation limit)")
+ax_npsha.set_xlabel("Cone Length (m)")
+ax_npsha.set_ylabel("NPSHA (m H2O)")
+ax_npsha.set_title("NPSHA vs Cone Length")
+ax_npsha.legend(fontsize=8, loc="best")
+ax_npsha.grid(True, alpha=0.4)
+
+# Right panel – frustum cross-section (longest cone, smallest outlet radius shown)
+r_bottom_display = r_out_arr[0]       # most tapered case
+height_display   = lengths[-1]        # longest cone
+
+plot_frustum_on_ax(ax_frust, r_in, r_bottom_display, height_display)
+
+plt.tight_layout()
+st.pyplot(fig)
+
+st.caption(
+    "Note: This calculator accounts only for pressure drop through the frustum (cone). "
+    "Pressure drop in rectangular feed throats typical of gear pumps is not included."
+)
