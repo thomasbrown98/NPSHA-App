@@ -1,70 +1,126 @@
-Net Positive Suction Head Available (NPSHA) — Derivation & Application
+Net Positive Suction Head Available (NPSHA_A
+A​) — Derivation & Application
+
 Overview
+
 The formula for calculating Net Positive Suction Head Available is:
-$$NPSH_A = H_{absolute} + H_{static} - H_{friction} - H_{vaporization}$$
-Term	Description
-$H_{absolute}$	Absolute pressure exerted on the fluid surface, expressed in meters of water
-$H_{static}$	Pressure at the base of the fluid column due to the height of fluid, expressed in meters of water
-$H_{friction}$	Pressure loss due to frictional losses in the piping system, expressed in meters of water
-$H_{vaporization}$	Vapor pressure of the fluid, expressed in meters of water
----
+
+NPSHA=Habsolute+Hstatic−Hfriction−HvaporizationNPSH_A = H_{\text{absolute}} + H_{\text{static}} - H_{\text{friction}} - H_{\text{vaporization}}NPSHA​=Habsolute​+Hstatic​−Hfriction​−Hvaporization​
+SymbolDescriptionHabsoluteH_{\text{absolute}}
+Habsolute​Absolute pressure exerted on the fluid surface, expressed in meters of waterHstaticH_{\text{static}}
+Hstatic​Pressure at the base of the fluid column due to the height of fluid, expressed in meters of waterHfrictionH_{\text{friction}}
+Hfriction​Pressure loss due to frictional losses in the piping system, expressed in meters of waterHvaporizationH_{\text{vaporization}}
+Hvaporization​Vapor pressure of the fluid, expressed in meters of water
+
+
 Frictional Losses — Hagen–Poiseuille Equation
-The frictional losses term $H_{friction}$ can be calculated using the Hagen–Poiseuille equation, assuming the fluid is in laminar flow and flowing through a vertical length of piping:
-$$\Delta P = \frac{128 \mu L Q}{\pi D^4}$$
+
+The frictional losses term HfrictionH_{\text{friction}}
+Hfriction​ can be calculated using the Hagen–Poiseuille equation, assuming the fluid is in laminar flow and flowing through a vertical length of piping:
+
+ΔP=128μLQπD4\Delta P = \frac{128 \mu L Q}{\pi D^4}ΔP=πD4128μLQ​
 where:
-$\mu$ — dynamic viscosity of the fluid $[\text{Pa·s}]$
-$L$ — length of the pipe $[\text{m}]$
-$Q$ — volumetric flow rate $[\text{m}^3/\text{s}]$
-$D$ — pipe diameter $[\text{m}]$
----
+
+SymbolDescriptionUnitsμ\mu
+μDynamic viscosity of the fluidPa·sLL
+LLength of the pipemQQ
+QVolumetric flow ratem³/sDD
+DPipe diameterm
+
+
 Adaptation for a Conical Frustum
+
 In the use case of interest, the Hagen–Poiseuille equation must be adapted for a conical frustum (a truncated cone).
+
 Step 1 — Differential Form
-First, express the Hagen–Poiseuille equation over a differential length $dz$ of piping:
-$$dP = \frac{128 \mu Q}{\pi D(z)^4} , dz$$
-or equivalently in terms of radius $r(z)$:
-$$dP = \frac{8 \mu Q}{\pi r(z)^4} , dz$$
+
+First, express the Hagen–Poiseuille equation over a differential length dzdz
+dz of piping:
+
+dP=128μQπD(z)4 dzdP = \frac{128 \mu Q}{\pi D(z)^4} \, dzdP=πD(z)4128μQ​dz
+or equivalently in terms of radius r(z)r(z)
+r(z):
+
+dP=8μQπr(z)4 dzdP = \frac{8 \mu Q}{\pi r(z)^4} \, dzdP=πr(z)48μQ​dz
 Step 2 — Radius as a Function of Position
-For a frustum of length $L$ with inlet radius $r_1$ and outlet radius $r_2$, the radius varies linearly along the axial coordinate $z$:
-$$r(z) = r_1 + \left(\frac{r_2 - r_1}{L}\right) z$$
+
+For a frustum of length LL
+L with inlet radius r1r_1
+r1​ and outlet radius r2r_2
+r2​, the radius varies linearly along the axial coordinate zz
+z:
+
+r(z)=r1+(r2−r1L)zr(z) = r_1 + \left(\frac{r_2 - r_1}{L}\right) zr(z)=r1​+(Lr2​−r1​​)z
 Step 3 — Substitution
+
 Substituting this expression into the differential form:
-$$dP = \frac{8 \mu Q}{\pi \left[r_1 + \left(\dfrac{r_2 - r_1}{L}\right) z\right]^4} , dz$$
+
+dP=8μQπ[r1+(r2−r1L)z]4 dzdP = \frac{8 \mu Q}{\pi \left[r_1 + \left(\dfrac{r_2 - r_1}{L}\right) z\right]^4} \, dzdP=π[r1​+(Lr2​−r1​​)z]48μQ​dz
 Step 4 — Integration over the Frustum Length
-Integrating from $z = 0$ to $z = L$:
-$$\Delta P = \frac{8 \mu Q}{\pi} \int_0^L \frac{dz}{\left[r_1 + \left(\dfrac{r_2 - r_1}{L}\right) z\right]^4}$$
-Using the standard result $\displaystyle\int \frac{dz}{(a + bz)^4} = \frac{-1}{3b(a+bz)^3}$, with $a = r_1$ and $b = \dfrac{r_2 - r_1}{L}$:
-$$\boxed{\Delta P_{frustum} = \frac{8 \mu Q L}{3\pi (r_2 - r_1)} \left(\frac{1}{r_1^3} - \frac{1}{r_2^3}\right)}$$
+
+Integrating from z=0z = 0
+z=0 to z=Lz = L
+z=L:
+
+ΔP=8μQπ∫0Ldz[r1+(r2−r1L)z]4\Delta P = \frac{8 \mu Q}{\pi} \int_0^L \frac{dz}{\left[r_1 + \left(\dfrac{r_2 - r_1}{L}\right) z\right]^4}ΔP=π8μQ​∫0L​[r1​+(Lr2​−r1​​)z]4dz​
+Using the standard result ∫dz(a+bz)4=−13b(a+bz)3\displaystyle\int \frac{dz}{(a + bz)^4} = \frac{-1}{3b(a+bz)^3}
+∫(a+bz)4dz​=3b(a+bz)3−1​, with a=r1a = r_1
+a=r1​ and b=r2−r1Lb = \dfrac{r_2 - r_1}{L}
+b=Lr2​−r1​​:
+
+ΔPfrustum=8μQL3π(r2−r1)(1r13−1r23)\boxed{\Delta P_{\text{frustum}} = \frac{8 \mu Q L}{3\pi (r_2 - r_1)} \left(\frac{1}{r_1^3} - \frac{1}{r_2^3}\right)}ΔPfrustum​=3π(r2​−r1​)8μQL​(r13​1​−r23​1​)​
 Converting to head of fluid (meters of water):
-$$H_{friction} = \frac{\Delta P_{frustum}}{\rho g}$$
----
-Calculating NPSHA
-Now that the pressure drop through the frustum is known, calculating $NPSH_A$ is straightforward:
-$$NPSH_A = H_{absolute} + H_{static} - \frac{\Delta P_{frustum}}{\rho g} - H_{vaporization}$$
----
+
+Hfriction=ΔPfrustumρgH_{\text{friction}} = \frac{\Delta P_{\text{frustum}}}{\rho g}Hfriction​=ρgΔPfrustum​​
+
+Calculating NPSHA_A
+A​
+
+Now that the pressure drop through the frustum is known, calculating NPSHANPSH_A
+NPSHA​ is straightforward:
+
+NPSHA=Habsolute+Hstatic−ΔPfrustumρg−HvaporizationNPSH_A = H_{\text{absolute}} + H_{\text{static}} - \frac{\Delta P_{\text{frustum}}}{\rho g} - H_{\text{vaporization}}NPSHA​=Habsolute​+Hstatic​−ρgΔPfrustum​​−Hvaporization​
+
 Streamlit Application
-The application presented here allows for easy determination of $NPSH_A$ as a function of several variables. Below are worked use cases.
+
+The application presented here allows for easy determination of NPSHANPSH_A
+NPSHA​ as a function of several variables. Below are worked use cases.
+
 Use Case — Viscous Polymer Solution from an Evaporator
+
 In one particular project, the fluid was a highly viscous polymer solution leaving an evaporator. Given that the fluid was immediately leaving the evaporator, the fluid was in vapor–liquid equilibrium. This presents a special case where:
-$$H_{absolute} = H_{vaporization}$$
-These two terms cancel in the NPSHA equation, simplifying it to:
-$$NPSH_A = H_{static} - H_{friction}$$
+
+Habsolute=HvaporizationH_{\text{absolute}} = H_{\text{vaporization}}Habsolute​=Hvaporization​
+These two terms cancel in the NPSHA_A
+A​ equation, simplifying it to:
+
+NPSHA=Hstatic−HfrictionNPSH_A = H_{\text{static}} - H_{\text{friction}}NPSHA​=Hstatic​−Hfriction​
 The user can then set:
-Fluid viscosity $\mu$ — to reflect the polymer solution rheology
-Desired volumetric flow rate $Q$ — to match the process requirement
-The application then computes $NPSH_A$ and checks whether it exceeds the pump's required $NPSH_R$ with adequate margin, flagging conditions where cavitation risk is present.
----
+
+
+Fluid viscosity μ\mu
+μ — to reflect the polymer solution rheology
+Desired volumetric flow rate QQ
+Q — to match the process requirement
+
+
+The application then computes NPSHANPSH_A
+NPSHA​ and checks whether it exceeds the pump's required NPSHRNPSH_R
+NPSHR​ with adequate margin, flagging conditions where cavitation risk is present.
+
+
 Summary of Variables
-Symbol	Description	Units
-$NPSH_A$	Net Positive Suction Head Available	m
-$H_{absolute}$	Absolute pressure head on fluid surface	m
-$H_{static}$	Static head of fluid column	m
-$H_{friction}$	Frictional head loss through piping/frustum	m
-$H_{vaporization}$	Vapor pressure head of fluid	m
-$\mu$	Dynamic viscosity	Pa·s
-$Q$	Volumetric flow rate	m³/s
-$L$	Length of frustum	m
-$r_1$	Inlet radius of frustum	m
-$r_2$	Outlet radius of frustum	m
-$\rho$	Fluid density	kg/m³
-$g$	Gravitational acceleration	m/s²
+
+SymbolDescriptionUnitsNPSHANPSH_A
+NPSHA​Net Positive Suction Head AvailablemHabsoluteH_{\text{absolute}}
+Habsolute​Absolute pressure head on fluid surfacemHstaticH_{\text{static}}
+Hstatic​Static head of fluid columnmHfrictionH_{\text{friction}}
+Hfriction​Frictional head loss through piping/frustummHvaporizationH_{\text{vaporization}}
+Hvaporization​Vapor pressure head of fluidmμ\mu
+μDynamic viscosityPa·sQQ
+QVolumetric flow ratem³/sLL
+LLength of frustummr1r_1
+r1​Inlet radius of frustummr2r_2
+r2​Outlet radius of frustummρ\rho
+ρFluid densitykg/m³gg
+gGravitational accelerationm/s²
